@@ -1,4 +1,5 @@
 use faer::Mat;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::fmt::Error;
 
 pub struct Predictions {
@@ -80,7 +81,7 @@ pub fn mmopt(
     let candidate_indices = generate_combinations(nout, nsamp);
 
     let (best_combo, min_risk) = candidate_indices
-        .iter()
+        .par_iter()
         .map(|combo| {
             let mut risk = 0.0;
             for i in 0..nsub {

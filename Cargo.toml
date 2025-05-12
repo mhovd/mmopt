@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 faer = "0.22.6"
+rayon = "1.10.0"
