@@ -74,6 +74,13 @@ pub fn mmopt(
     let nsub = predictions.nsub();
     let nout = predictions.nout();
 
+    if nsamp > nout {
+        return Err(Error::default()); // Or a more descriptive error
+    }
+    if nsub == 0 || nout == 0 {
+        return Err(Error::default());
+    }
+
     // Create a cost matrix
     let cost_matrix = CostMatrix::default(predictions);
 
@@ -91,9 +98,6 @@ pub fn mmopt(
                             .matrix()
                             .col(i)
                             .iter()
-                            .map(|x| *x)
-                            .collect::<Vec<f64>>()
-                            .iter()
                             .enumerate()
                             .filter_map(|(k, &x)| if combo.contains(&k) { Some(x) } else { None })
                             .collect();
@@ -101,9 +105,6 @@ pub fn mmopt(
                         let j_obs: Vec<f64> = predictions
                             .matrix()
                             .col(j)
-                            .iter()
-                            .map(|x| *x)
-                            .collect::<Vec<f64>>()
                             .iter()
                             .enumerate()
                             .filter_map(|(k, &x)| if combo.contains(&k) { Some(x) } else { None })
@@ -122,8 +123,8 @@ pub fn mmopt(
                             .map(|(((y_i, y_j), i_var), j_var)| {
                                 let denominator = i_var + j_var;
                                 let term1 = (y_i - y_j).powi(2) / (4.0 * denominator);
-                                let term2 = 0.5 * ((i_var.powi(2) + j_var.powi(2)) / 2.0).ln();
-                                let term3 = -0.25 * (i_var.powi(2) * j_var.powi(2)).ln();
+                                let term2 = 0.5 * ((i_var + j_var) / 2.0).ln();
+                                let term3 = -0.25 * (i_var * j_var).ln();
                                 term1 + term2 + term3
                             })
                             .collect::<Vec<f64>>()
