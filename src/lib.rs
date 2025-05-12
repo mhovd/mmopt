@@ -27,7 +27,7 @@ struct CostMatrix {
 
 impl CostMatrix {
     fn default(predictions: &Predictions) -> Self {
-        let cost_matrix = Mat::from_fn(predictions.nsub(), predictions.nout(), |i, j| {
+        let cost_matrix = Mat::from_fn(predictions.nsub(), predictions.nsub(), |i, j| {
             if i == j {
                 0.0
             } else {
@@ -87,8 +87,27 @@ pub fn mmopt(
             for i in 0..nsub {
                 for j in 0..nsub {
                     if i != j {
-                        let i_obs = predictions.matrix().col(i);
-                        let j_obs = predictions.matrix().col(j);
+                        let i_obs: Vec<f64> = predictions
+                            .matrix()
+                            .col(i)
+                            .iter()
+                            .map(|x| *x)
+                            .collect::<Vec<f64>>()
+                            .iter()
+                            .enumerate()
+                            .filter_map(|(k, &x)| if combo.contains(&k) { Some(x) } else { None })
+                            .collect();
+
+                        let j_obs: Vec<f64> = predictions
+                            .matrix()
+                            .col(j)
+                            .iter()
+                            .map(|x| *x)
+                            .collect::<Vec<f64>>()
+                            .iter()
+                            .enumerate()
+                            .filter_map(|(k, &x)| if combo.contains(&k) { Some(x) } else { None })
+                            .collect();
 
                         let i_var: Vec<f64> =
                             i_obs.iter().map(|&x| errorpoly.variance(x)).collect();
@@ -101,7 +120,7 @@ pub fn mmopt(
                             .zip(i_var.iter())
                             .zip(j_var.iter())
                             .map(|(((y_i, y_j), i_var), j_var)| {
-                                let denominator = i_var.powi(2) + j_var.powi(2);
+                                let denominator = i_var + j_var;
                                 let term1 = (y_i - y_j).powi(2) / (4.0 * denominator);
                                 let term2 = 0.5 * ((i_var.powi(2) + j_var.powi(2)) / 2.0).ln();
                                 let term3 = -0.25 * (i_var.powi(2) * j_var.powi(2)).ln();

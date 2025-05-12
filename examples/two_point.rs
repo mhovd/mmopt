@@ -37,11 +37,11 @@ fn main() {
         probs: probs,
     };
 
-    let errorpoly = ErrorPoly::new(0.1, 0.0, 0.0, 0.0);
+    let errorpoly = ErrorPoly::new(0.255, 0.0, 0.0, 0.0);
 
-    let res = mmopt::mmopt(&predictions, errorpoly, 4).unwrap();
+    let res = mmopt::mmopt(&predictions, errorpoly, 2).unwrap();
 
     println!("Best combo indices: {:?}", res.best_combo_indices);
     println!("Best combo times: {:?}", res.best_combo_times);
-    println!("Minimum risk: {:?}", res.min_risk);
+    println!("Bayes risk: {:?}", res.min_risk);
 }
